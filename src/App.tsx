@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { evaluateAuthority } from "./services/authorization";
+import type { AuthorizationDecision, AuthorityEnvelope, ProposedAction } from "./types/authority";
 import {
   ArrowDownRight, ArrowRight, BadgeCheck, Blocks, BookOpen, Check,
   ChevronDown, CircleDot, FileCheck2, Fingerprint, GitBranch, Menu,
@@ -20,14 +22,42 @@ const principles = [
   ["03", "Evidence with accountable ownership", "Connect the decision, applicable policy, approver, owner, and outcome so teams can investigate what happened."],
 ];
 
-type Decision = "PERMIT" | "PERMIT_WITH_CONDITIONS" | "ESCALATE" | "DENY";
+type Decision = AuthorizationDecision["outcome"];
 
 function evaluateAction(action: string, amount: number, evidence: boolean): { decision: Decision; reason: string } {
-  if (!evidence) return { decision: "ESCALATE", reason: "Required evidence is missing. An authorized reviewer must resolve the evidence gap." };
-  if (action === "Delete customer account") return { decision: "DENY", reason: "This demonstration mandate prohibits irreversible account deletion." };
-  if (action === "Issue refund" && amount > 500) return { decision: "ESCALATE", reason: "The requested refund exceeds the example mandate limit of $500." };
-  if (action === "Send customer email") return { decision: "PERMIT_WITH_CONDITIONS", reason: "Example policy allows a reviewed template only; recipient and content checks must pass server-side." };
-  return { decision: "PERMIT", reason: "The action passes the example scope and limit checks. This is a local simulation, not a live authorization." };
+  const actionType = action === "Issue refund"
+    ? "issue_refund"
+    : action === "Send customer email"
+      ? "send_template_email"
+      : "delete_account";
+
+  const envelope: AuthorityEnvelope = {
+    id: "gae-demo-refunds",
+    tenantId: "demo-tenant",
+    subjectId: "demo-agent",
+    accountableOwnerId: "demo-operations-owner",
+    allowedActions: ["issue_refund", "send_template_email"],
+    prohibitedActions: ["delete_account"],
+    maxAmount: 500,
+    requiredEvidence: ["order_record"],
+    requireHumanApprovalFor: ["send_template_email"],
+    issuedAt: "2026-01-01T00:00:00.000Z",
+    expiresAt: "2030-01-01T00:00:00.000Z",
+    status: "ACTIVE",
+    policyVersion: "demo-policy-v1",
+  };
+
+  const request: ProposedAction = {
+    requestId: `demo-${actionType}-${amount}`,
+    tenantId: "demo-tenant",
+    subjectId: "demo-agent",
+    actionType,
+    amount: actionType === "issue_refund" ? amount : undefined,
+    evidencePresent: evidence ? ["order_record"] : [],
+  };
+
+  const result = evaluateAuthority(request, envelope);
+  return { decision: result.outcome, reason: result.explanation };
 }
 
 function AuthorityDemo() {
