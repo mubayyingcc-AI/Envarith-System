@@ -86,6 +86,60 @@ function AuthorityDemo() {
   );
 }
 
+function ContactForm() {
+  const [values, setValues] = useState({
+    name: "",
+    email: "",
+    organization: "",
+    role: "",
+    useCase: "",
+    consent: false,
+    website: "",
+  });
+  const [status, setStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus(null);
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Your enquiry could not be submitted.");
+      setStatus({ kind: "success", message: payload.reference ? `Thanks — your enquiry is saved. Reference: ${payload.reference}` : "Thanks — your enquiry has been received." });
+      setValues({ name: "", email: "", organization: "", role: "", useCase: "", consent: false, website: "" });
+    } catch (error) {
+      setStatus({ kind: "error", message: error instanceof Error ? error.message : "Something went wrong. Please try again." });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <form className="contact-form" onSubmit={handleSubmit}>
+      <div className="contact-form-grid">
+        <label>Name <input name="name" autoComplete="name" minLength={2} maxLength={120} required value={values.name} onChange={(e) => setValues({ ...values, name: e.target.value })} placeholder="Your name" /></label>
+        <label>Work email <input name="email" type="email" autoComplete="email" maxLength={254} required value={values.email} onChange={(e) => setValues({ ...values, email: e.target.value })} placeholder="you@company.com" /></label>
+        <label>Organization <input name="organization" autoComplete="organization" maxLength={180} value={values.organization} onChange={(e) => setValues({ ...values, organization: e.target.value })} placeholder="Company or team (optional)" /></label>
+        <label>Your role <input name="role" maxLength={120} value={values.role} onChange={(e) => setValues({ ...values, role: e.target.value })} placeholder="Security, legal, product…" /></label>
+      </div>
+      <label className="contact-message-label">What would you like to govern?
+        <textarea name="useCase" required minLength={10} maxLength={5000} rows={4} value={values.useCase} onChange={(e) => setValues({ ...values, useCase: e.target.value })} placeholder="Describe the AI agent, actions, or accountability challenge you are working on." />
+      </label>
+      <label className="contact-honeypot" aria-hidden="true">Leave this field empty<input tabIndex={-1} autoComplete="off" name="website" value={values.website} onChange={(e) => setValues({ ...values, website: e.target.value })} /></label>
+      <label className="contact-consent"><input type="checkbox" required checked={values.consent} onChange={(e) => setValues({ ...values, consent: e.target.checked })} /><span>I agree that Envarith may use these details to respond to my enquiry. Please do not include confidential or sensitive information.</span></label>
+      <button className="button button-primary contact-submit" type="submit" disabled={submitting}>{submitting ? "Sending enquiry…" : "Send enquiry"} <ArrowRight size={16} /></button>
+      {status && <p className={`contact-status contact-status-${status.kind}`} role="status">{status.message}</p>}
+      <p className="contact-form-note">Submissions are stored for enquiry follow-up. No confidential or sensitive information should be included.</p>
+    </form>
+  );
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("");
@@ -144,7 +198,7 @@ function App() {
 
         <section className="section section-light" id="research"><div className="container closing-grid"><div><p className="eyebrow">BUILT FOR REVIEW, NOT BLIND TRUST</p><h2>Every permission should<br />have a <span>reason.</span></h2></div><div><p>Authority must be scoped, time-limited, revocable, and tied to a responsible owner. Evidence should help people understand a decision without pretending that a log alone proves the underlying event or settles legal responsibility.</p><div className="closing-links"><a href="#platform">Explore the modules <ArrowRight size={15} /></a><a href="#contact">Talk with the team <ArrowRight size={15} /></a></div></div></div></section>
 
-        <section className="contact-section" id="contact"><div className="container contact-inner"><div><p className="eyebrow">START WITH THE AUTHORITY PROBLEM</p><h2>Bring your agent use case<br />into the <span>conversation.</span></h2><p>Tell us which actions you need to govern, who owns the risk, and what evidence your organization needs.</p></div><a className="button button-primary" href="mailto:hello@envarith.ai?subject=Envarith%20early%20access">Contact Envarith <ArrowRight size={17} /></a></div></section>
+        <section className="contact-section" id="contact"><div className="container contact-inner"><div><p className="eyebrow">START WITH THE AUTHORITY PROBLEM</p><h2>Bring your agent use case<br />into the <span>conversation.</span></h2><p>Tell us which actions you need to govern, who owns the risk, and what evidence your organization needs.</p><p className="contact-privacy-note"><ShieldCheck size={15} /> Share only the information needed for an initial conversation.</p></div><ContactForm /></div></section>
       </main>
 
       <footer className="site-footer"><div className="container footer-top"><a className="brand footer-brand" href="#home"><span className="brand-mark"><GitBranch size={21} /></span><span>envarith<span className="brand-period">.</span><small>GOVERN THE ACTION. PROVE THE AUTHORITY.</small></span></a><p>AI Authority Infrastructure<br /><span>Designed for accountable autonomy.</span></p><a href="#home" className="back-top">Back to top ↑</a></div><div className="container footer-bottom"><span>© {new Date().getFullYear()} Envarith. Early-stage product.</span><span>Capabilities shown may be illustrative or planned. No compliance guarantee is implied.</span><a href="https://github.com/mubayyingcc-AI/Envarith-System">GitHub repository <ArrowRight size={13} /></a></div></footer>
