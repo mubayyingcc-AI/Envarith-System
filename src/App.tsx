@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { evaluateAuthority } from "./services/authorization";
 import type { AuthorizationDecision, AuthorityEnvelope, ProposedAction } from "./types/authority";
 import {
@@ -99,7 +99,7 @@ function ContactForm() {
   const [status, setStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus(null);
     setSubmitting(true);
