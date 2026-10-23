@@ -15,3 +15,27 @@
 @media(max-width:800px){.container{width:min(100% - 36px,600px)}.section{padding:72px 0}.site-header{height:70px}.mobile-menu{display:block}.main-nav{display:none;position:absolute;top:69px;left:0;right:0;padding:17px 22px 22px;background:#0b1424;border-bottom:1px solid #ffffff17;align-items:stretch;flex-direction:column;gap:0}.main-nav.nav-open{display:flex}.main-nav a{padding:13px 4px;border-bottom:1px solid #ffffff0d;font-size:13px;justify-content:space-between}.hero{padding-top:65px}.hero-grid{grid-template-columns:1fr;gap:15px}.hero-copy{max-width:600px}.hero-visual{height:380px;margin-top:10px}.hero-bottom{margin-top:28px;align-items:flex-start;gap:18px;flex-direction:column}.hero-bottom div{flex-wrap:wrap}.section-heading{display:block}.section-intro{margin-top:22px}.module-grid{grid-template-columns:repeat(2,1fr)}.split-section,.demo-section,.closing-grid{grid-template-columns:1fr;gap:40px}.academy-inner{grid-template-columns:auto 1fr;gap:22px}.academy-symbol{width:95px;height:95px}.academy-inner h2{font-size:31px}.academy-inner>.button{grid-column:2;justify-self:start}.contact-inner{align-items:flex-start;flex-direction:column}.footer-top{gap:20px;flex-wrap:wrap}.footer-bottom{flex-wrap:wrap}.footer-bottom span:nth-child(2){order:3;width:100%}}
 @media(max-width:520px){.container{width:calc(100% - 32px)}.brand{font-size:20px}.brand-mark{width:35px;height:35px}.brand small{font-size:7px}h1{font-size:43px;letter-spacing:-1.9px}.hero-lede{font-size:14px}.hero-actions{align-items:stretch;flex-direction:column}.hero-actions .button{width:100%}.hero-visual{height:315px;transform:scale(.9);margin-inline:-18px}.orbit-one{width:245px}.orbit-two{width:320px}.visual-core{width:145px;height:145px;font-size:9px}.orbit-node{padding:8px;gap:6px}.orbit-node strong{font-size:8px}.orbit-node small{font-size:7px}.node-agent{left:0;top:18px}.node-policy{right:0;top:52px}.node-human{left:0;bottom:48px}.node-evidence{right:0;bottom:17px}.trust-inner{gap:14px;justify-content:flex-start}.trust-inner strong{width:calc(50% - 8px)}.module-grid{grid-template-columns:1fr}.module-card{min-height:0}.module-card>p:not(.module-label){min-height:0}.principle{gap:10px;grid-template-columns:25px 1fr 15px}.demo-body{padding:19px}.demo-title-row h3{font-size:21px}.academy-inner{grid-template-columns:1fr}.academy-symbol{width:90px;height:90px}.academy-inner>.button{grid-column:1}.academy-inner h2{font-size:30px}.closing-links{flex-direction:column;gap:15px}.contact-inner h2{font-size:31px}.footer-top{align-items:flex-start;flex-direction:column}.footer-bottom{flex-direction:column;gap:12px}.footer-bottom span:nth-child(2){order:0}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+
+/* Early-access contact form */
+.contact-inner{align-items:start}
+.contact-inner>div{max-width:470px}
+.contact-privacy-note{display:flex;align-items:center;gap:8px;margin-top:22px!important;color:#b8f2d0!important;font-size:11px!important}
+.contact-form{width:min(100%,590px);padding:25px;background:#0c1929;border:1px solid rgba(184,242,208,.18);border-radius:12px;box-shadow:0 22px 60px #050b1490}
+.contact-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.contact-form label{display:block;color:#d5e0e8;font-size:11px;font-weight:600}
+.contact-form input:not([type=checkbox]),.contact-form textarea{display:block;width:100%;margin-top:8px;padding:12px 13px;border:1px solid #2b3d50;border-radius:6px;background:#101f31;color:#f3f7fa;font-size:12px;font-weight:400;outline-color:#b8f2d0}
+.contact-form input::placeholder,.contact-form textarea::placeholder{color:#718297}
+.contact-form textarea{resize:vertical;min-height:110px;line-height:1.6}
+.contact-message-label{margin-top:16px}
+.contact-consent{display:flex!important;align-items:flex-start;gap:10px;margin-top:16px;color:#9eafc0!important;font-size:10px!important;line-height:1.6;font-weight:400!important}
+.contact-consent input{margin-top:2px;accent-color:#b8f2d0;flex:0 0 auto}
+.contact-submit{margin-top:17px;width:100%;border:0}
+.contact-submit:disabled{opacity:.65;cursor:wait}
+.contact-form-note{margin:12px 0 0;color:#788ba0;font-size:9px;line-height:1.6}
+.contact-status{margin:13px 0 0;padding:11px 12px;border-radius:6px;font-size:11px;line-height:1.6}
+.contact-status-success{background:#163629;border:1px solid #2e6e4f;color:#c8f5d8}
+.contact-status-error{background:#3a2025;border:1px solid #71404a;color:#ffd8de}
+.contact-honeypot{position:absolute!important;left:-10000px!important;top:auto!important;width:1px!important;height:1px!important;overflow:hidden!important}
+@media(max-width:800px){.contact-inner{gap:28px}.contact-form{width:100%}}
+@media(max-width:520px){.contact-form{padding:18px}.contact-form-grid{grid-template-columns:1fr;gap:13px}}
