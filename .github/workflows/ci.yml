@@ -21,6 +21,8 @@ jobs:
           node-version: 20
       - name: Install dependencies
         run: npm install
+      - name: Check server syntax
+        run: npm run check:server
       - name: Type-check
         run: npm run typecheck
       - name: Run tests
