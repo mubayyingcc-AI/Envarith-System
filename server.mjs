@@ -85,11 +85,16 @@ function stringArray(value, maxItems = 100) {
     ? [...new Set(value.map((item) => item.trim()))] : null;
 }
 function sha256(value) { return createHash("sha256").update(value).digest("hex"); }
+function canonicalJson(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return "[" + value.map(canonicalJson).join(",") + "]";
+  return "{" + Object.keys(value).sort().map((key) => JSON.stringify(key) + ":" + canonicalJson(value[key])).join(",") + "}";
+}
 
 async function recordEvidence(client, { tenantId, subjectId, eventType, objectType, objectId, payload }) {
   // Serialize ledger-head updates per tenant inside the caller's transaction to avoid concurrent forks.
   await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [tenantId]);
-  const canonicalPayload = JSON.stringify(payload ?? {});
+  const canonicalPayload = canonicalJson(payload ?? {});
   const payloadDigest = sha256(canonicalPayload);
   const previous = await client.query(
     "SELECT event_hash FROM evidence_events WHERE tenant_id=$1 ORDER BY id DESC LIMIT 1 FOR UPDATE",
@@ -304,6 +309,40 @@ authorityRouter.post("/evaluate", requireRole(new Set(["owner","admin","governan
     await client.query("COMMIT");return res.status(201).json({decision:inserted.rows[0],executionPerformed:false});
   }catch(error){await client.query("ROLLBACK").catch(()=>{});if(error.code==="23505")return res.status(409).json({error:"Request ID already exists; use a unique requestId per decision."});console.error("Evaluation failed:",error.message);return res.status(500).json({error:"Could not evaluate and persist this request."});}
   finally{client.release();}
+});
+
+authorityRouter.get("/evidence/verify", requireRole(new Set(["owner","admin","governance_lead","auditor"])), async(req,res)=>{
+  try {
+    const result = await pool.query(
+      "SELECT id,event_id,event_type,subject_id,object_type,object_id,occurred_at,payload,payload_digest,previous_hash,event_hash FROM evidence_events WHERE tenant_id=$1 ORDER BY id ASC",
+      [req.auth.tenantId],
+    );
+    let previousHash = null;
+    const failures = [];
+    for (const row of result.rows) {
+      const occurredAt = new Date(row.occurred_at).toISOString();
+      const payloadDigest = sha256(canonicalJson(row.payload ?? {}));
+      const expectedHash = sha256([
+        req.auth.tenantId, row.event_id, row.event_type, row.subject_id,
+        row.object_type, row.object_id, occurredAt, row.payload_digest,
+        row.previous_hash || "",
+      ].join("|"));
+      if (row.previous_hash !== previousHash) failures.push({ eventId: row.event_id, reason: "PREVIOUS_HASH_MISMATCH" });
+      if (row.payload_digest !== payloadDigest) failures.push({ eventId: row.event_id, reason: "PAYLOAD_DIGEST_MISMATCH" });
+      if (row.event_hash !== expectedHash) failures.push({ eventId: row.event_id, reason: "EVENT_HASH_MISMATCH" });
+      previousHash = row.event_hash;
+    }
+    return res.json({
+      verified: failures.length === 0,
+      checkedEvents: result.rows.length,
+      headHash: previousHash,
+      failures: failures.slice(0, 100),
+      note: "This verifies the stored tenant chain and payload digests. It does not prove the database operator could not rewrite the entire chain; export or externally anchor checkpoints for stronger independent assurance.",
+    });
+  } catch (error) {
+    console.error("Evidence verification failed:", error.message);
+    return res.status(500).json({ error: "Could not verify the evidence chain." });
+  }
 });
 
 authorityRouter.get("/evidence", requireRole(new Set(["owner","admin","governance_lead","reviewer","auditor"])), async(req,res)=>{
