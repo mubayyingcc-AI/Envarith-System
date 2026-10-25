@@ -297,7 +297,7 @@ authorityRouter.post("/evaluate", requireRole(new Set(["owner","admin","governan
     else if(e.max_amount!==null&&amount===null&&/(refund|payment|transfer|purchase|payout|charge|withdraw|credit)/i.test(actionType)){outcome="ESCALATE";reasons=["AMOUNT_REQUIRED_FOR_FINANCIAL_ACTION"];explanation="A financial action with an amount limit must include the requested amount; human review is required.";}
     else {const missing=e.required_evidence.filter(x=>!evidence.includes(x));if(missing.length){outcome="ESCALATE";reasons=["REQUIRED_EVIDENCE_MISSING"];explanation="Required evidence is missing: "+missing.join(", ")+ ".";}
       else if(e.require_human_approval_for.includes(actionType)&&b.humanApprovalGranted!==true){outcome="ESCALATE";reasons=["HUMAN_APPROVAL_REQUIRED"];explanation="This action requires human approval; no verified approval token was supplied.";}
-      else if(e.require_human_approval_for.includes(actionType)){outcome="PERMIT_WITH_CONDITIONS";reasons=["HUMAN_APPROVAL_CLAIM_REQUIRES_VERIFICATION"];explanation="Approval was claimed but is not independently authenticated by this API; do not execute until verified.";}
+      else if(e.require_human_approval_for.includes(actionType)){outcome="ESCALATE";reasons=["HUMAN_APPROVAL_NOT_VERIFIED"];explanation="An approval claim is not an authenticated approval record. This API cannot authorize the action until an independently verified approval workflow exists.";}
       else {outcome="PERMIT";reasons=["AUTHORITY_CHECKS_PASSED"];explanation="Persisted envelope checks passed. A protected execution adapter must still enforce the result.";}
     }
     // Approval claims never independently authorize external execution. The API records a decision only.
