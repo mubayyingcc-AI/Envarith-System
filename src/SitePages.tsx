@@ -1,4 +1,4 @@
-import { ArrowRight, BookOpen, ChevronDown, GitBranch, Menu, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, ChevronDown, GitBranch, Menu, ShieldCheck, X } from "lucide-react";
 import { useState } from "react";
 
 type Page = { path: string; title: string; eyebrow: string; summary: string; sections: { title: string; body: string; bullets?: string[] }[]; status?: "Available as concept" | "In development" | "Planned"; };
