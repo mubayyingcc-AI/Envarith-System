@@ -31,6 +31,19 @@ AI systems need more than a policy document or an activity log. Organizations ne
 - Treat cryptographic integrity as evidence of tampering detection, not proof that an event was true or that a system is legally compliant.
 - Label simulations and planned capabilities honestly.
 
+
+## Sovereign Authority Fabric — implementation status
+
+The server now initializes PostgreSQL tables for:
+
+- tenant and membership records;
+- scoped, expiring, revocable authority envelopes;
+- persisted authorization decisions and reason codes;
+- evidence events with hash-chain fields;
+- accountability graph edges.
+
+These are the first persistent data structures for the sovereignty architecture. **They are not yet a production-secure multi-tenant API.** Authenticated identity, server-derived tenant context, authorization on every route, evidence hash generation and independent checkpointing, policy CRUD/revocation endpoints, and cross-tenant security tests remain required before real customer data or enforcement use. The existing evaluator remains a reference evaluator and does not itself execute or block external actions.
+
 ## Getting started
 
 This repository uses React, TypeScript, and Vite for the web interface.
