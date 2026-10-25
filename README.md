@@ -63,4 +63,4 @@ npm run dev
 6. Contract intake and human-reviewed obligation mapping.
 7. Integrations, threat modelling, security testing, and deployment hardening.
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md), [DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md](./DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md), [ROADMAP.md](./ROADMAP.md), and [SECURITY.md](./SECURITY.md).
+See [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md), [DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md](./DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md), [ROADMAP.md](./ROADMAP.md), and [SECURITY.md](./SECURITY.md).
