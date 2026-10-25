@@ -87,6 +87,8 @@ function stringArray(value, maxItems = 100) {
 function sha256(value) { return createHash("sha256").update(value).digest("hex"); }
 
 async function recordEvidence(client, { tenantId, subjectId, eventType, objectType, objectId, payload }) {
+  // Serialize ledger-head updates per tenant inside the caller's transaction to avoid concurrent forks.
+  await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [tenantId]);
   const canonicalPayload = JSON.stringify(payload ?? {});
   const payloadDigest = sha256(canonicalPayload);
   const previous = await client.query(
