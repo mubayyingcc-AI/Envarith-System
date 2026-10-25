@@ -66,6 +66,16 @@ describe("evaluateAuthority", () => {
     expect(result.reasonCodes).toContain("AMOUNT_LIMIT_EXCEEDED");
   });
 
+  it("escalates a financial action when the envelope has an amount limit but the amount is missing", () => {
+    const result = evaluateAuthority(
+      { ...request, amount: undefined },
+      envelope,
+      { now: fixedNow },
+    );
+    expect(result.outcome).toBe("ESCALATE");
+    expect(result.reasonCodes).toContain("AMOUNT_REQUIRED_FOR_FINANCIAL_ACTION");
+  });
+
   it("escalates when required evidence is missing", () => {
     const result = evaluateAuthority(
       { ...request, evidencePresent: [] },
