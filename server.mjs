@@ -267,7 +267,7 @@ authorityRouter.post("/evaluate", requireRole(new Set(["owner","admin","governan
   const b=req.body??{};
   const requestId=asString(b.requestId,200), envelopeId=asString(b.envelopeId,100), subjectId=asString(b.subjectId,200), actionType=asString(b.actionType,200), resourceId=asString(b.resourceId,200);
   const evidence=stringArray(b.evidencePresent??[]);
-  const amount=b.amount===undefined?null:Number(b.amount);
+  const amount=b.amount===undefined||b.amount===null||b.amount===""?null:Number(b.amount);
   if(!requestId||!envelopeId||!subjectId||!actionType||!evidence||(amount!==null&&(!Number.isFinite(amount)||amount<0)))return res.status(400).json({error:"Invalid evaluation request."});
   // Idempotency is bound to the complete request. Reusing a request ID with
   // different inputs must never silently return a stale decision.
