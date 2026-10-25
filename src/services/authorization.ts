@@ -161,6 +161,21 @@ export function evaluateAuthority(
 
   if (
     envelope.maxAmount !== undefined &&
+    request.amount === undefined &&
+    /(refund|payment|transfer|purchase|payout|charge|withdraw|credit)/i.test(request.actionType)
+  ) {
+    return decision(
+      request,
+      envelope,
+      "ESCALATE",
+      ["AMOUNT_REQUIRED_FOR_FINANCIAL_ACTION"],
+      "A financial action with an amount limit must include the requested amount.",
+      now,
+    );
+  }
+
+  if (
+    envelope.maxAmount !== undefined &&
     request.amount !== undefined &&
     request.amount > envelope.maxAmount
   ) {
