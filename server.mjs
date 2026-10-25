@@ -271,10 +271,12 @@ authorityRouter.post("/evaluate", requireRole(new Set(["owner","admin","governan
   if(!requestId||!envelopeId||!subjectId||!actionType||!evidence||(amount!==null&&(!Number.isFinite(amount)||amount<0)))return res.status(400).json({error:"Invalid evaluation request."});
   // Idempotency is bound to the complete request. Reusing a request ID with
   // different inputs must never silently return a stale decision.
-  const digest=sha256(JSON.stringify({requestId,envelopeId,subjectId,actionType,resourceId,amount,evidence,humanApprovalGranted:b.humanApprovalGranted===true}));
+  const digest=sha256(canonicalJson({requestId,envelopeId,subjectId,actionType,resourceId,amount,evidence,humanApprovalGranted:b.humanApprovalGranted===true}));
   const client=await pool.connect();
   try{
     await client.query("BEGIN");
+    // Serialize concurrent retries using the same tenant/request ID.
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1),hashtext($2))",[req.auth.tenantId,requestId]);
     const existing=await client.query("SELECT * FROM authorization_decisions WHERE tenant_id=$1 AND request_id=$2",[req.auth.tenantId,requestId]);
     if(existing.rowCount){
       if(existing.rows[0].input_digest!==digest){
