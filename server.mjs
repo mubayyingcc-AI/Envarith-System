@@ -264,11 +264,21 @@ authorityRouter.post("/evaluate", requireRole(new Set(["owner","admin","governan
   const evidence=stringArray(b.evidencePresent??[]);
   const amount=b.amount===undefined?null:Number(b.amount);
   if(!requestId||!envelopeId||!subjectId||!actionType||!evidence||(amount!==null&&(!Number.isFinite(amount)||amount<0)))return res.status(400).json({error:"Invalid evaluation request."});
+  // Idempotency is bound to the complete request. Reusing a request ID with
+  // different inputs must never silently return a stale decision.
+  const digest=sha256(JSON.stringify({requestId,envelopeId,subjectId,actionType,resourceId,amount,evidence,humanApprovalGranted:b.humanApprovalGranted===true}));
   const client=await pool.connect();
   try{
     await client.query("BEGIN");
     const existing=await client.query("SELECT * FROM authorization_decisions WHERE tenant_id=$1 AND request_id=$2",[req.auth.tenantId,requestId]);
-    if(existing.rowCount){await client.query("COMMIT");return res.json({decision:existing.rows[0],idempotentReplay:true});}
+    if(existing.rowCount){
+      if(existing.rows[0].input_digest!==digest){
+        await client.query("ROLLBACK");
+        return res.status(409).json({error:"This requestId was already used with different inputs. Use a new requestId for a new evaluation."});
+      }
+      await client.query("COMMIT");
+      return res.json({decision:existing.rows[0],idempotentReplay:true,executionPerformed:false});
+    }
     const found=await client.query("SELECT * FROM authority_envelopes WHERE tenant_id=$1 AND id=$2 FOR SHARE",[req.auth.tenantId,envelopeId]);
     if(!found.rowCount){await client.query("ROLLBACK");return res.status(404).json({error:"Authority envelope not found for this tenant."});}
     const e=found.rows[0]; let outcome="DENY", reasons=[], explanation="Request denied by default.";
@@ -278,14 +288,14 @@ authorityRouter.post("/evaluate", requireRole(new Set(["owner","admin","governan
     else if(e.prohibited_actions.includes(actionType)){reasons=["ACTION_EXPLICITLY_PROHIBITED"];explanation="Action is explicitly prohibited.";}
     else if(!e.allowed_actions.includes(actionType)){reasons=["ACTION_OUTSIDE_SCOPE"];explanation="Action is not in the authorized scope.";}
     else if(e.allowed_resources.length && (!resourceId||!e.allowed_resources.includes(resourceId))){reasons=["RESOURCE_OUTSIDE_SCOPE"];explanation="Resource is missing or outside the authorized scope.";}
-    else if(amount!==null&&e.max_amount!==null&&amount>Number(e.max_amount)){outcome="ESCALATE";reasons=["AMOUNT_LIMIT_EXCEEDED"];explanation="Amount exceeds the envelope limit; human review is required.";}
+    else if(e.max_amount!==null&&amount!==null&&amount>Number(e.max_amount)){outcome="ESCALATE";reasons=["AMOUNT_LIMIT_EXCEEDED"];explanation="Amount exceeds the envelope limit; human review is required.";}
+    else if(e.max_amount!==null&&amount===null&&/(refund|payment|transfer|purchase|payout|charge|withdraw|credit)/i.test(actionType)){outcome="ESCALATE";reasons=["AMOUNT_REQUIRED_FOR_FINANCIAL_ACTION"];explanation="A financial action with an amount limit must include the requested amount; human review is required.";}
     else {const missing=e.required_evidence.filter(x=>!evidence.includes(x));if(missing.length){outcome="ESCALATE";reasons=["REQUIRED_EVIDENCE_MISSING"];explanation="Required evidence is missing: "+missing.join(", ")+ ".";}
       else if(e.require_human_approval_for.includes(actionType)&&b.humanApprovalGranted!==true){outcome="ESCALATE";reasons=["HUMAN_APPROVAL_REQUIRED"];explanation="This action requires human approval; no verified approval token was supplied.";}
       else if(e.require_human_approval_for.includes(actionType)){outcome="PERMIT_WITH_CONDITIONS";reasons=["HUMAN_APPROVAL_CLAIM_REQUIRES_VERIFICATION"];explanation="Approval was claimed but is not independently authenticated by this API; do not execute until verified.";}
       else {outcome="PERMIT";reasons=["AUTHORITY_CHECKS_PASSED"];explanation="Persisted envelope checks passed. A protected execution adapter must still enforce the result.";}
     }
     // Approval claims never independently authorize external execution. The API records a decision only.
-    const digest=sha256(JSON.stringify({requestId,envelopeId,subjectId,actionType,resourceId,amount,evidence}));
     const inserted=await client.query(
       `INSERT INTO authorization_decisions(tenant_id,request_id,envelope_id,subject_id,action_type,resource_id,requested_amount,outcome,reason_codes,explanation,policy_version,input_digest)
        VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10,$11,$12) RETURNING *`,
