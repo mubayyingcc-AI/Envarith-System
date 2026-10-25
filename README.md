@@ -4,63 +4,57 @@
 
 Envarith is an AI Authority Infrastructure project focused on defining what AI agents are permitted to do, when a human must intervene, and how consequential actions connect to accountable owners and reviewable evidence.
 
-> **Current status:** foundation scaffold. This repository is the beginning of the implementation, not a claim that runtime enforcement, legal compliance, or production security is already complete.
+> **Status: active prototype engineering.** The repository includes a React website, a PostgreSQL-backed authority API, a reference policy evaluator, revocation, evidence-chain recording/verification, and accountability graph endpoints. The deployment is not yet verified live, and the API is not yet a production enforcement boundary.
 
-## Product thesis
+## Core architecture
 
-AI systems need more than a policy document or an activity log. Organizations need an operational link between a reviewed mandate, a proposed action, the decision to permit or block it, the accountable owner, and evidence explaining what happened.
+1. **Governed Action Envelope (GAE)** — a scoped, expiring, revocable mandate linking an agent subject, allowed/prohibited actions, resource scope, amount limits, required evidence, approval conditions, policy version, and accountable owner.
+2. **Authority decision service** — evaluates proposed actions against the persisted envelope and returns `PERMIT`, `PERMIT_WITH_CONDITIONS`, `ESCALATE`, or `DENY` with reason codes.
+3. **Evidence chain** — records envelope creation, revocation, and authorization decisions with canonical payload digests and per-tenant hash chaining; includes an endpoint to verify stored chain continuity.
+4. **Accountability graph** — persists typed relationships between agents, policies, tools, people, actions, and other governed objects.
+5. **Human oversight** — the prototype fails closed to escalation when required approval cannot be independently authenticated.
 
-## Initial product scope
+## Current API capabilities
 
-1. **Authority** — create scoped, time-limited, revocable mandates for an agent.
-2. **Oversight Center** — review exceptions, approvals, revocations, and risk signals.
-3. **Accountability Graph** — connect agents, model versions, policies, tools, people, actions, and outcomes.
-4. **Evidence Vault** — preserve a reviewable record of decisions and changes.
-5. **Contract Intelligence** — map vendor contract obligations to candidate controls for human review.
-6. **Incident Command** — coordinate containment, investigation, remediation, and reauthorization.
-7. **Academy and Talent** — learning simulations, assessed skill records, and practitioner discovery.
+- Health and database checks: `GET /health`, `GET /api/health`
+- Create/list/revoke authority envelopes
+- Evaluate and persist authorization decisions with idempotency conflict detection
+- Read evidence events and verify stored evidence-chain integrity
+- Create/list accountability graph edges
+- Persist contact requests
 
-## Design principles
+See [API.md](./API.md) for endpoint contracts, authentication setup, examples, and limitations.
 
-- Deny by default when a required policy or authority check cannot be completed.
-- Make the authorization decision explicit: `PERMIT`, `PERMIT_WITH_CONDITIONS`, `ESCALATE`, or `DENY`.
-- Keep authorization enforcement server-side; client-side UI is never a security boundary.
-- Bind authority to a subject, action scope, resources, limits, expiry, policy version, and accountable owner.
-- Record approvals, overrides, revocations, and policy changes.
-- Use human review for legal interpretation and consequential contract findings.
-- Treat cryptographic integrity as evidence of tampering detection, not proof that an event was true or that a system is legally compliant.
-- Label simulations and planned capabilities honestly.
+## Important security boundaries
 
+- The UI simulation is not a security boundary.
+- `PERMIT` is a recorded policy decision, not proof that an external tool is blocked or allowed. No external action is executed by the current API.
+- API authentication currently uses server-configured tenant-bound static bearer keys as a bootstrap mechanism.
+- A claimed approval is not a verified approval.
+- Hash chaining helps detect certain changes; it does not prove event truth or prevent an administrator from rewriting the entire chain without an independent checkpoint.
+- Do not submit real customer secrets, sensitive contracts, or production agent traffic.
 
-## Sovereign Authority Fabric — implementation status
+## Local development
 
-The server now initializes PostgreSQL tables for:
-
-- tenant and membership records;
-- scoped, expiring, revocable authority envelopes;
-- persisted authorization decisions and reason codes;
-- evidence events with hash-chain fields;
-- accountability graph edges.
-
-These are the first persistent data structures for the sovereignty architecture. **They are not yet a production-secure multi-tenant API.** Authenticated identity, server-derived tenant context, authorization on every route, evidence hash generation and independent checkpointing, policy CRUD/revocation endpoints, and cross-tenant security tests remain required before real customer data or enforcement use. The existing evaluator remains a reference evaluator and does not itself execute or block external actions.
-
-## Getting started
-
-This repository uses React, TypeScript, and Vite for the web interface.
+Requirements: Node.js 20 or newer and PostgreSQL for database-backed endpoints.
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Planned implementation sequence
+Run automated checks:
 
-1. Public site and design system.
-2. Authority mandate builder and policy-decision simulator.
-3. API contracts, validation, and automated tests.
-4. Identity, tenancy, persistent storage, and server-side authorization.
-5. Evidence records, approvals, revocation, and incident workflows.
-6. Contract intake and human-reviewed obligation mapping.
-7. Integrations, threat modelling, security testing, and deployment hardening.
+```bash
+npm run typecheck
+npm test
+npm run build
+```
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md), [API.md](./API.md), [DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md](./DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md), [ROADMAP.md](./ROADMAP.md), and [SECURITY.md](./SECURITY.md).
+Configure `DATABASE_URL` and `ENVARITH_API_KEYS` in the local environment for API testing. Never commit real credentials. See `.env.example` and [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+## Production readiness gates
+
+Before using Envarith to govern real agent execution, complete and test: established identity and credential lifecycle, database-level tenant isolation, formal migrations, independently authenticated approval objects, a protected execution adapter with exact-action rechecks and idempotency, external evidence checkpoints, retention/export/deletion controls, monitoring, backup/restore tests, threat modelling, and cross-tenant security testing.
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md), [DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md](./DATA_SOVEREIGNTY_AND_DEFENSIBILITY.md), [ROADMAP.md](./ROADMAP.md), and [SECURITY.md](./SECURITY.md).
