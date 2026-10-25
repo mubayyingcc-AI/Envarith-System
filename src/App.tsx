@@ -143,7 +143,7 @@ function ContactForm() {
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState("");
-  const navItems = ["Platform", "Solutions", "Academy", "Talent", "Research", "Developers", "Company"];
+  const navItems = [{ label: "Platform", href: "/platform" }, { label: "Solutions", href: "/solutions" }, { label: "Academy", href: "/academy" }, { label: "Talent", href: "/talent" }, { label: "Research", href: "/research" }, { label: "Developers", href: "/developers" }, { label: "Company", href: "/company" }];
 
   return (
     <>
@@ -152,7 +152,7 @@ function App() {
           <a className="brand" href="#home" aria-label="Envarith home"><span className="brand-mark"><GitBranch size={22} strokeWidth={2.2} /></span><span>envarith<span className="brand-period">.</span><small>AI AUTHORITY INFRASTRUCTURE</small></span></a>
           <button className="mobile-menu" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? "Close navigation" : "Open navigation"}>{menuOpen ? <X /> : <Menu />}</button>
           <nav className={menuOpen ? "main-nav nav-open" : "main-nav"} aria-label="Main navigation">
-            {navItems.map((item) => <a key={item} href={item === "Platform" ? "#platform" : item === "Solutions" ? "#solutions" : `#${item.toLowerCase()}`} className={activeNav === item ? "nav-active" : ""} onClick={() => { setActiveNav(item); setMenuOpen(false); }}>{item}<ChevronDown size={13} /></a>)}
+            {navItems.map((item) => <a key={item.label} href={item.href} className={activeNav === item.label ? "nav-active" : ""} onClick={() => { setActiveNav(item.label); setMenuOpen(false); }}>{item.label}</a>)}
             <a className="nav-contact" href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
           </nav>
           <a className="button button-small button-primary header-cta" href="#playground">Explore the platform <ArrowRight size={15} /></a>
