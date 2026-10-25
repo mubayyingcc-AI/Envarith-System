@@ -25,6 +25,17 @@ Envarith is an AI Authority Infrastructure project focused on defining what AI a
 
 See [API.md](./API.md) for endpoint contracts, authentication setup, examples, and limitations.
 
+## Engineering and release standard
+
+Every feature must have four things before it can be called production-ready:
+
+1. **A defined contract** — inputs, outputs, side effects, errors, permissions and limits.
+2. **A real implementation** — server-side behaviour and appropriate access controls, not just a clickable UI.
+3. **Repeatable tests** — positive, negative, security and persistence tests appropriate to the feature, with actual results recorded.
+4. **An honest status** — proposed, implemented-unverified, tested, independently verified, production-ready, or blocked.
+
+A successful deployment is not a successful product by itself. A database write is not a verified record, and an integrity check does not automatically prove the truth or legal effect of an event. See [FEATURE_VERIFICATION_STANDARD.md](./FEATURE_VERIFICATION_STANDARD.md) for the complete policy and release gates.
+
 ## Important security boundaries
 
 - The UI simulation is not a security boundary.
@@ -46,6 +57,7 @@ npm run dev
 Run automated checks:
 
 ```bash
+npm run check:server
 npm run typecheck
 npm test
 npm run build
