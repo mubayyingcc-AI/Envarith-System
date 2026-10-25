@@ -45,3 +45,17 @@
 .developer-preview-top span:last-child{margin-left:auto;color:#d6b979;font-size:8px}
 .developer-preview pre{margin:0;padding:23px;overflow:auto;color:#c5e7d2;font:11px/1.9 var(--mono);white-space:pre-wrap}
 .developer-preview p{padding:0 23px 18px;margin:0;color:#8394a8;font-size:10px;line-height:1.6}
+
+/* Customer data sovereignty and defensibility section */
+.sovereignty-section{padding:100px 0;background:linear-gradient(145deg,#101e30,#0b1424 72%);color:#eaf0f7;border-top:1px solid rgba(184,242,208,.12);border-bottom:1px solid rgba(184,242,208,.12)}
+.sovereignty-heading{max-width:740px;margin-bottom:38px}
+.sovereignty-heading h2{font-size:clamp(34px,4.3vw,53px);line-height:1.12;margin:20px 0}
+.sovereignty-heading h2 span{color:var(--mint)}
+.sovereignty-heading>p:last-child{max-width:680px;color:#aab8c7;font-size:14px;line-height:1.85}
+.sovereignty-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;margin:36px 0 22px}
+.sovereignty-grid article{padding:24px;border:1px solid rgba(184,242,208,.17);border-radius:9px;background:rgba(255,255,255,.025)}
+.sovereignty-grid article>svg{color:var(--mint);margin-bottom:22px}
+.sovereignty-grid h3{font:600 16px var(--display);line-height:1.45;margin-bottom:12px}
+.sovereignty-grid p{color:#aab8c7;font-size:12px;line-height:1.8;margin:0}
+.sovereignty-caveat{max-width:850px;color:#8294a9;font-size:10px;line-height:1.7;margin:0 0 23px}
+@media(max-width:800px){.sovereignty-section{padding:70px 0}.sovereignty-grid{grid-template-columns:1fr}.sovereignty-grid article{padding:20px}}
