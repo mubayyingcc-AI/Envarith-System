@@ -3,7 +3,7 @@ import { evaluateAuthority } from "./services/authorization";
 import type { AuthorizationDecision, AuthorityEnvelope, ProposedAction } from "./types/authority";
 import {
   ArrowDownRight, ArrowRight, BadgeCheck, Blocks, BookOpen, Check,
-  ChevronDown, CircleDot, FileCheck2, Fingerprint, GitBranch, Menu,
+  CircleDot, FileCheck2, Fingerprint, GitBranch, Menu,
   Network, ShieldCheck, Sparkles, X,
 } from "lucide-react";
 
